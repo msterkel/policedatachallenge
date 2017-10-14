@@ -1,3 +1,3 @@
 # policedatachallenge
 
-(info)[https://www.policedatainitiative.org/datasets/]
+-Info (info)[https://www.policedatainitiative.org/datasets/]
