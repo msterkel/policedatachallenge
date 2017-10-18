@@ -1,0 +1,54 @@
+```{r}
+x=read.csv(file.choose())
+```
+
+
+```{r}
+
+
+mysample <- x[sample(1:nrow(x), 50,
+   replace=FALSE),] 
+```
+
+```{r}
+seat=read.csv("../math 399/Seattle_Police_Department_911_Incident_Response.csv")
+last = seat[,19]
+
+```
+
+```{r}
+colisn=read.csv(file.choose())
+
+library(dplyr)
+library(ggplot2)
+
+sub_cycle=filter(colisn,COLLISIONTYPE == "Cycles")
+
+##graphed time by months over all years, however I want by year.
+ggplot(sub_cycle,aes(as.numeric(INCDATE)))+geom_histogram()
+
+
+ggplot(sub_cycle,aes(INCKEY))+geom_histogram()
+library(dplyr)
+library(tidyr)
+str(sub_cycle)
+typeof(sub_cycle$INCDATE)
+
+sub_cycle2<-sub_cycle %>% separate(INCDATE,c("DATE","TIME"), " ", extra="drop")%>% separate(DATE,c("MM","DD","YYYY"),"/", extra="drop")
+
+
+
+
+
+
+aarddta=read.csv(file.choose())
+
+## original file not readable, not enough columns
+
+library(readr)
+aaDAta <-read_csv(file="https://raw.githubusercontent.com/msterkel/policedatachallenge/master/biketheft.csv")
+
+```
+
+
+
