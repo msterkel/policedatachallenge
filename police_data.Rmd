@@ -1,23 +1,123 @@
-```{r}
-x=read.csv(file.choose())
-```
 
+```{r, warning=FALSE,message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(stringr)
+#read in bike theft data
 
-```{r}
-
-
-mysample <- x[sample(1:nrow(x), 50,
-   replace=FALSE),] 
-```
-
-```{r}
-seat=read.csv("../math 399/Seattle_Police_Department_911_Incident_Response.csv")
-last = seat[,19]
+seat<-read.csv("https://raw.githubusercontent.com/ClassicSours/policedatachallenge/master/biketheft.csv")
 
 ```
 
+subset data to year 2015,and selected variables
+
+```{r}
+by2015<-filter(seat,YYYY == 2015) %>% select(Event.Clearance.Description,CAD.CDW.ID,YYYY,MM,DD,
+                                             TIME,Census.Tract,Latitude,Longitude) %>%
+              mutate(month=str_pad(MM,2,pad="0"),
+                     day=str_pad(DD,2,pad="0"),  
+                     date = ymd(paste0(YYYY,month,day)))
+
+```
+
+read in event data
+
+```{r}
+library(readxl)
+library(tidyr)
+
+eventData<-read_xlsx("../police_Data/Festivals and Sports Events1.xlsx",col_names = TRUE)%>% separate(Date,c("YYYY","MM","DD"),"-")%>%
+              mutate(month=str_pad(MM,2,pad="0"),
+                     day=str_pad(DD,2,pad="0"),  
+                     date = ymd(paste0(YYYY,month,day)))
+  
+```
+
+
+
+determine if the theft occured on the same day as an event (anywhere)
+```{r}
+#convert dates to #s 
+#add as column to by2015 data
+ by2015<-by2015%>%mutate(matchDates=by2015$date %in% eventData$date) 
+ 
+ 
+```
+
+
+determine if theft occured in 1 mile radius of event location using lat/long
+used conversion of 1 degree of long/ 69.2 miles
+
+```{r}
+latLow<-c(eventData$Lattitude-0.01445)
+latHigh<-c(eventData$Lattitude+0.01445)
+longLow<-c(eventData$Longitude-0.01445)
+longHigh<-c(eventData$Longitude+0.01445)
+
+
+m<-rep(0,nrow(by2015))
+dim(m)     
+for(i in 1:nrow(by2015)){
+  if(by2015$matchDate[i] == TRUE){
+    if(any(by2015$Latitude[i]>latLow   & by2015$Latitude[i]<latHigh & 
+           by2015$Longitude[i]>longLow & by2015$Longitude[i]<longHigh))
+     m[i]<-1
+    }
+}
+
+mean(m) 
+
+by2015<-by2015%>%mutate(m)
+
+```
+
+graph theft and events on y-axis and time over x-axis
+
+```{r}
+
+## summarise data first using summary, need x and y 
+
+eventDataInt<-mutate(eventData,Month=as.integer(MM),Day=as.integer(DD))
+
+ggplot() +geom_smooth(mapping = aes(x =eventDataInt$Month, y = eventDataInt$Day),se=FALSE)+ 
+  geom_smooth(mapping = aes(x = by2015$MM, y = by2015$DD,color="red"),se=FALSE)
+    
+```
+
+use pie chart showing proportion of bike thefts and those thefts that are durring event(time) And within radius of event
+
+
+
+```{r}
+slices <- c(73,27)
+lbls <- c("non event thefts","thefts at/during events")
+pie(slices, labels = lbls, main="Proportion of bike thefts during events")
+
+```
+
+
+
+
+
+
+```{r}
+#show map of Seattle area with (1.) event location(red), (2.) theft on same day as event (black), (3) theft on nonevent days
+# event radius not considered in code here, the person obsererving the map will see for themself
+
+
+
+
+```
+
+
+/*Extra code*/
+------------------------------
+------------------------------
 ```{r}
 colisn=read.csv(file.choose())
+
+#colsin=read.csv("../colisnData/Collision__arcgis_rest_services_SDOT_EXT_DSG_datasharing_MapServer_51_.csv",header="TRUE")
 
 library(dplyr)
 library(ggplot2)
@@ -35,20 +135,25 @@ str(sub_cycle)
 typeof(sub_cycle$INCDATE)
 
 sub_cycle2<-sub_cycle %>% separate(INCDATE,c("DATE","TIME"), " ", extra="drop")%>% separate(DATE,c("MM","DD","YYYY"),"/", extra="drop")
-
-
-
-
-
-
-aarddta=read.csv(file.choose())
-
-## original file not readable, not enough columns
-
-library(readr)
-aaDAta <-read_csv(file="https://raw.githubusercontent.com/msterkel/policedatachallenge/master/biketheft.csv")
-
 ```
 
 
 
+```{r}
+#peak bike theft occurs in june
+
+h<-hist(by2015$MM)
+```
+
+
+```{r}
+I <- 10
+t <- rep(0, I)
+  for(i in 1:I){
+    if(i>3 & i<6){
+      t[i]=1
+    }
+}
+sum(t)
+
+```
