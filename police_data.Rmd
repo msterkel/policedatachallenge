@@ -75,14 +75,11 @@ by2015<-by2015%>%mutate(m)
 graph theft and events on y-axis and time over x-axis
 
 ```{r}
-
-## summarise data first using summary, need x and y 
-
-eventDataInt<-mutate(eventData,Month=as.integer(MM),Day=as.integer(DD))
-
-ggplot() +geom_smooth(mapping = aes(x =eventDataInt$Month, y = eventDataInt$Day),se=FALSE)+ 
-  geom_smooth(mapping = aes(x = by2015$MM, y = by2015$DD,color="red"),se=FALSE)
-    
+  
+ ggplot(NULL, aes(month)) + 
+  geom_bar(aes(fill = "events"), data = eventData, alpha = 0.5) +
+  geom_bar(aes(fill = "bike thefts"), data = by2015, alpha = 0.5)
+  
 ```
 
 use pie chart showing proportion of bike thefts and those thefts that are durring event(time) And within radius of event
