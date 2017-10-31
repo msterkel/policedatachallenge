@@ -1,10 +1,15 @@
+---
+title: 'Police Data Challenge'
+author: "Matt Sterkel"
+output: html_document
+---
+read in bike theft data
 
 ```{r, warning=FALSE,message=FALSE}
 library(ggplot2)
 library(dplyr)
 library(lubridate)
 library(stringr)
-#read in bike theft data
 
 seat<-read.csv("https://raw.githubusercontent.com/ClassicSours/policedatachallenge/master/biketheft.csv")
 
@@ -23,7 +28,7 @@ by2015<-filter(seat,YYYY == 2015) %>% select(Event.Clearance.Description,CAD.CDW
 
 read in event data
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(readxl)
 library(tidyr)
 
@@ -55,9 +60,9 @@ latHigh<-c(eventData$Lattitude+0.01445)
 longLow<-c(eventData$Longitude-0.01445)
 longHigh<-c(eventData$Longitude+0.01445)
 
-
+ 
 m<-rep(0,nrow(by2015))
-dim(m)     
+     
 for(i in 1:nrow(by2015)){
   if(by2015$matchDate[i] == TRUE){
     if(any(by2015$Latitude[i]>latLow   & by2015$Latitude[i]<latHigh & 
@@ -74,83 +79,60 @@ by2015<-by2015%>%mutate(m)
 
 graph theft and events on y-axis and time over x-axis
 
-```{r}
-  
- ggplot(NULL, aes(month)) + 
-  geom_bar(aes(fill = "events"), data = eventData, alpha = 0.5) +
-  geom_bar(aes(fill = "bike thefts"), data = by2015, alpha = 0.5)
-  
+```{r, message=FALSE,warning=FALSE}
+  library(reshape2)
+ ggplot(NULL, aes(month))+ 
+  geom_bar(aes(fill = "events"), data = eventData, alpha = 0.5)+
+  geom_bar(aes(fill = "bike thefts"), data = by2015,alpha=0.3)+
+   scale_fill_manual(name="occurance type",
+                   values = c('bike thefts' = '#f67e55','events' = 'black')) 
+
+sumdata<-by2015%>%group_by(date)%>%summarize(n=n())
+sumdataEvent<-eventData%>%group_by(date)%>%summarize(n=n())
+
+
+
+ggplot()+
+  geom_point(data=sumdata, aes(x=date,y=n),color="red")+
+  ylab("number of occurances")+
+    geom_smooth(data=sumdata, aes(x=date,y=n,color="Bike thefts"),se=FALSE)+
+  geom_point(data=sumdataEvent,aes(x=date,y=n),color="blue")+
+    geom_smooth(data=sumdataEvent, aes(x=date,y=n,color="events"),se=FALSE)+
+scale_color_manual(name="occurance type",
+                   values = c('Bike thefts' = 'red','events' = 'blue')) 
+
+
+
 ```
+
+Proportion of bike thefts during events by month(1-12)
+
+
+```{r}
+sumdata<-by2015%>%group_by(month)%>%summarize(n=n(),xm=sum(m),p=paste0(round(xm/n,2)*100,"%"))
+sumdata$p
+```
+
+we see that during the summer months, the proportion of bike thefts during events increases.
+
+```{r}
+
+ggplot(by2015, aes(x=month,fill=as.factor(m)))+
+  geom_bar()+
+  scale_fill_manual(name="",
+                    values = c("#aaa4a1","#f67e55"),
+                    labels=c("Bike thefts","Bike thefts during event"))
+```
+
 
 use pie chart showing proportion of bike thefts and those thefts that are durring event(time) And within radius of event
 
 
 
 ```{r}
-slices <- c(73,27)
-lbls <- c("non event thefts","thefts at/during events")
-pie(slices, labels = lbls, main="Proportion of bike thefts during events")
+chart <- table(by2015$m)
 
+  names(chart)<-c("no event","event")
+    pie(chart, labels = paste0(names(chart), ' (', round(prop.table(chart)*100, 2), "%)"),col=c("#aaa4a1","#f67e55"),main="Proportion of bike thefts during events")
 ```
 
-
-
-
-
-
-```{r}
-#show map of Seattle area with (1.) event location(red), (2.) theft on same day as event (black), (3) theft on nonevent days
-# event radius not considered in code here, the person obsererving the map will see for themself
-
-
-
-
-```
-
-
-/*Extra code*/
-------------------------------
-------------------------------
-```{r}
-colisn=read.csv(file.choose())
-
-#colsin=read.csv("../colisnData/Collision__arcgis_rest_services_SDOT_EXT_DSG_datasharing_MapServer_51_.csv",header="TRUE")
-
-library(dplyr)
-library(ggplot2)
-
-sub_cycle=filter(colisn,COLLISIONTYPE == "Cycles")
-
-##graphed time by months over all years, however I want by year.
-ggplot(sub_cycle,aes(as.numeric(INCDATE)))+geom_histogram()
-
-
-ggplot(sub_cycle,aes(INCKEY))+geom_histogram()
-library(dplyr)
-library(tidyr)
-str(sub_cycle)
-typeof(sub_cycle$INCDATE)
-
-sub_cycle2<-sub_cycle %>% separate(INCDATE,c("DATE","TIME"), " ", extra="drop")%>% separate(DATE,c("MM","DD","YYYY"),"/", extra="drop")
-```
-
-
-
-```{r}
-#peak bike theft occurs in june
-
-h<-hist(by2015$MM)
-```
-
-
-```{r}
-I <- 10
-t <- rep(0, I)
-  for(i in 1:I){
-    if(i>3 & i<6){
-      t[i]=1
-    }
-}
-sum(t)
-
-```
